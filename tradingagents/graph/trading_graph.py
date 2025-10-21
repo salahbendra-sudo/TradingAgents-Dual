@@ -12,7 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.chat_models import ChatOllama
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms import HuggingFaceEndpoint
-from langchain_community.chat_models.huggingface import ChatHuggingFace
+from langchain_community.chat_models import ChatHuggingFace
 
 from langgraph.prebuilt import ToolNode
 
