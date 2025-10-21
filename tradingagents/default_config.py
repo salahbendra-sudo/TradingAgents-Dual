@@ -13,6 +13,14 @@ DEFAULT_CONFIG = {
     "deep_think_llm": "o4-mini",
     "quick_think_llm": "gpt-4o-mini",
     "backend_url": "https://api.openai.com/v1",
+    "openai_api_key": "",  # Can be set here or via OPENAI_API_KEY environment variable
+    # Additional LLM API keys for enhanced provider support
+    "openrouter_api_key": "",  # Get from https://openrouter.ai/
+    "deepseek_api_key": "",    # Get from https://platform.deepseek.com/
+    "huggingface_api_key": "", # Get from https://huggingface.co/settings/tokens
+    # Local embedding model settings
+    "local_embeddings": False,  # Set to True to use local embedding models
+    "embedding_model": "all-MiniLM-L6-v2",  # Default local embedding model
     # Debate and discussion settings
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,

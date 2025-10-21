@@ -129,6 +129,25 @@ export CRYPTOCOMPARE_API_KEY=$YOUR_CRYPTOCOMPARE_API_KEY
 export COINGECKO_API_KEY=$YOUR_COINGECKO_API_KEY
 ```
 
+### Enhanced LLM Provider Support
+
+TradingAgents supports multiple LLM providers beyond OpenAI:
+
+- **OpenRouter**: Access to 100+ models (Anthropic, Google, Meta, Mistral, etc.)
+- **DeepSeek**: Cost-effective alternative with free tier
+- **Ollama**: Run models locally for privacy and offline use
+- **HuggingFace**: Open-source models via API or local installation
+
+Optional API keys for enhanced LLM providers:
+```bash
+# Optional LLM provider API keys
+export OPENROUTER_API_KEY=$YOUR_OPENROUTER_API_KEY
+export DEEPSEEK_API_KEY=$YOUR_DEEPSEEK_API_KEY
+export HUGGINGFACE_API_KEY=$YOUR_HUGGINGFACE_API_KEY
+```
+
+See [LLM_PROVIDER_GUIDE.md](LLM_PROVIDER_GUIDE.md) for detailed configuration.
+
 Alternatively, you can create a `.env` file in the project root with your API keys (see `.env.example` for reference):
 ```bash
 cp .env.example .env
