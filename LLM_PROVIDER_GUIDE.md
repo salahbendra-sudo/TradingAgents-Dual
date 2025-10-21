@@ -4,6 +4,42 @@
 
 TradingAgents now supports multiple LLM providers beyond OpenAI, including OpenRouter, DeepSeek, Ollama, and HuggingFace models. This guide covers how to configure and use these providers.
 
+## Quick Start
+
+### Test Your Configuration
+
+Run the validation script to test all LLM provider configurations:
+
+```bash
+python test_llm_providers.py
+```
+
+### Basic Setup
+
+1. **Set API Keys** in your environment or `.env` file
+2. **Configure Provider** in your trading graph configuration
+3. **Test Configuration** with the validation script
+4. **Run Analysis** with your chosen provider
+
+### Example: Switch from OpenAI to OpenRouter
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+# Switch from OpenAI to OpenRouter
+config = DEFAULT_CONFIG.copy()
+config.update({
+    "llm_provider": "openrouter",
+    "deep_think_llm": "anthropic/claude-3.5-sonnet",
+    "quick_think_llm": "google/gemini-flash-1.5",
+    "openrouter_api_key": "your_openrouter_api_key"
+})
+
+ta = TradingAgentsGraph(config=config)
+_, decision = ta.propagate("AAPL", "2024-05-10")
+```
+
 ## Supported Providers
 
 ### 1. OpenAI (Default)
