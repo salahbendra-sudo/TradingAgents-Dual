@@ -20,14 +20,21 @@ DEFAULT_CONFIG = {
     # Data vendor configuration
     # Category-level configuration (default for all tools in category)
     "data_vendors": {
-        "core_stock_apis": "yfinance",       # Options: yfinance, alpha_vantage, local
-        "technical_indicators": "yfinance",  # Options: yfinance, alpha_vantage, local
+        "core_stock_apis": "yfinance",       # Options: yfinance, alpha_vantage, local, crypto
+        "technical_indicators": "yfinance",  # Options: yfinance, alpha_vantage, local, crypto
         "fundamental_data": "alpha_vantage", # Options: openai, alpha_vantage, local
-        "news_data": "alpha_vantage",        # Options: openai, alpha_vantage, google, local
+        "news_data": "alpha_vantage",        # Options: openai, alpha_vantage, google, local, crypto
     },
     # Tool-level configuration (takes precedence over category-level)
     "tool_vendors": {
         # Example: "get_stock_data": "alpha_vantage",  # Override category default
         # Example: "get_news": "openai",               # Override category default
+    },
+    
+    # Crypto API configurations
+    "crypto_api_keys": {
+        "coinmarketcap": "",  # Get from https://coinmarketcap.com/api/
+        "cryptocompare": "",  # Get from https://min-api.cryptocompare.com/
+        "coingecko": "",  # Optional for higher rate limits
     },
 }

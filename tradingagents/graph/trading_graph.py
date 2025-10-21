@@ -61,6 +61,9 @@ class TradingAgentsGraph:
         """
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
+        
+        # Store original analyst selection
+        self.selected_analysts = selected_analysts
 
         # Update the interface's config
         set_config(self.config)
@@ -120,6 +123,59 @@ class TradingAgentsGraph:
         # Set up the graph
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
+    def _is_crypto_symbol(self, symbol: str) -> bool:
+        """
+        Check if a symbol represents a cryptocurrency.
+        
+        Args:
+            symbol (str): The symbol to check
+            
+        Returns:
+            bool: True if it's a crypto symbol, False otherwise
+        """
+        # Common crypto symbols and patterns
+        crypto_patterns = [
+            "BTC", "ETH", "XRP", "LTC", "BCH", "ADA", "DOT", "LINK", "XLM", "DOGE",
+            "USDT", "USDC", "DAI", "WBTC", "MATIC", "SOL", "AVAX", "ATOM", "ALGO", "FIL"
+        ]
+        
+        symbol_upper = symbol.upper()
+        
+        # Check for common crypto patterns
+        for pattern in crypto_patterns:
+            if pattern in symbol_upper:
+                return True
+        
+        # Check for crypto-specific suffixes
+        crypto_suffixes = ["-USD", "-USDT", "-BTC", "-ETH"]
+        for suffix in crypto_suffixes:
+            if symbol_upper.endswith(suffix):
+                return True
+                
+        return False
+
+    def _get_adjusted_analysts_for_symbol(self, symbol: str) -> list:
+        """
+        Get the appropriate analyst selection for a given symbol.
+        For crypto symbols, exclude fundamentals analyst.
+        
+        Args:
+            symbol (str): The symbol to analyze
+            
+        Returns:
+            list: Adjusted list of analysts
+        """
+        if self._is_crypto_symbol(symbol):
+            # For crypto, exclude fundamentals analyst
+            adjusted_analysts = [a for a in self.selected_analysts if a != "fundamentals"]
+            if not adjusted_analysts:
+                # If no analysts left, use default crypto analysts
+                adjusted_analysts = ["market", "social", "news"]
+            return adjusted_analysts
+        else:
+            # For stocks, use the original selection
+            return self.selected_analysts
+
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""
         return {
@@ -161,6 +217,13 @@ class TradingAgentsGraph:
         """Run the trading agents graph for a company on a specific date."""
 
         self.ticker = company_name
+
+        # Get adjusted analysts for the symbol (crypto vs stock)
+        adjusted_analysts = self._get_adjusted_analysts_for_symbol(company_name)
+        
+        # Re-setup graph with adjusted analysts if needed
+        if adjusted_analysts != self.selected_analysts:
+            self.graph = self.graph_setup.setup_graph(adjusted_analysts)
 
         # Initialize state
         init_agent_state = self.propagator.create_initial_state(

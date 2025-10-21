@@ -121,6 +121,14 @@ export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
 export ALPHA_VANTAGE_API_KEY=$YOUR_ALPHA_VANTAGE_API_KEY
 ```
 
+For enhanced cryptocurrency support, optional API keys:
+```bash
+# Optional crypto API keys for enhanced features
+export COINMARKETCAP_API_KEY=$YOUR_COINMARKETCAP_API_KEY
+export CRYPTOCOMPARE_API_KEY=$YOUR_CRYPTOCOMPARE_API_KEY
+export COINGECKO_API_KEY=$YOUR_COINGECKO_API_KEY
+```
+
 Alternatively, you can create a `.env` file in the project root with your API keys (see `.env.example` for reference):
 ```bash
 cp .env.example .env
@@ -167,9 +175,13 @@ from tradingagents.default_config import DEFAULT_CONFIG
 
 ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
 
-# forward propagate
+# forward propagate for stocks
 _, decision = ta.propagate("NVDA", "2024-05-10")
 print(decision)
+
+# forward propagate for cryptocurrencies
+_, crypto_decision = ta.propagate("BTC-USD", "2024-05-10")
+print(crypto_decision)
 ```
 
 You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
@@ -203,6 +215,129 @@ print(decision)
 > The default configuration uses yfinance for stock price and technical data, and Alpha Vantage for fundamental and news data. For production use or if you encounter rate limits, consider upgrading to [Alpha Vantage Premium](https://www.alphavantage.co/premium/) for more stable and reliable data access. For offline experimentation, there's a local data vendor option that uses our **Tauric TradingDB**, a curated dataset for backtesting, though this is still in development. We're currently refining this dataset and plan to release it soon alongside our upcoming projects. Stay tuned!
 
 You can view the full list of configurations in `tradingagents/default_config.py`.
+
+## Enhanced Crypto Support
+
+TradingAgents now includes comprehensive cryptocurrency analysis with multiple API support, real-time data, and crypto-specific analytics.
+
+### Key Features
+
+- **Multi-API Support**: CoinGecko, CoinMarketCap, CryptoCompare, and Yahoo Finance
+- **Real-time Data**: Live cryptocurrency prices, market caps, and volume data
+- **Crypto-Specific Indicators**: NVT Ratio, Mayer Multiple, Puell Multiple, RHODL Ratio
+- **Social Sentiment Analysis**: Twitter followers, Reddit subscribers, community metrics
+- **Enhanced News**: Crypto-specific news aggregation and status updates
+- **Portfolio Analysis**: Multi-crypto portfolio construction and optimization
+- **Rate Limiting**: Built-in rate limiting for all API calls
+
+### Supported Cryptocurrencies
+
+- **Major Cryptocurrencies**: `BTC-USD`, `ETH-USD`, `ADA-USD`, `SOL-USD`, `DOGE-USD`, `XRP-USD`
+- **Altcoins**: `LTC-USD`, `DOT-USD`, `LINK-USD`, `MATIC-USD`, `AVAX-USD`, `ATOM-USD`, `ALGO-USD`, `FIL-USD`
+- **Additional**: `BNB-USD`, `XLM-USD`, `EOS-USD`, `TRX-USD`, `XMR-USD`, `DASH-USD`, `ZEC-USD`
+
+### API Configuration
+
+To use enhanced crypto features, set up API keys in your environment:
+
+```bash
+# CoinMarketCap API (recommended for premium data)
+export COINMARKETCAP_API_KEY="your_api_key_here"
+
+# CryptoCompare API (optional)
+export CRYPTOCOMPARE_API_KEY="your_api_key_here"
+
+# CoinGecko API (optional for higher rate limits)
+export COINGECKO_API_KEY="your_api_key_here"
+```
+
+**API Key Sources:**
+- [CoinMarketCap API](https://coinmarketcap.com/api/) - Free tier available
+- [CryptoCompare API](https://min-api.cryptocompare.com/) - Free tier available  
+- [CoinGecko API](https://www.coingecko.com/en/api) - Free tier available
+
+### Configuration
+
+Update your `config.json` to enable enhanced crypto features:
+
+```json
+{
+    "data_vendors": {
+        "core_stock_apis": "crypto",
+        "technical_indicators": "crypto", 
+        "news_data": "crypto"
+    },
+    "crypto_api_keys": {
+        "coinmarketcap": "your_key",
+        "cryptocompare": "your_key",
+        "coingecko": "your_key"
+    }
+}
+```
+
+### Example Usage
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+# Initialize the trading graph
+ta = TradingAgentsGraph(debug=True)
+
+# Analyze Bitcoin with enhanced crypto data
+_, btc_decision = ta.propagate("BTC-USD", "2024-05-10")
+
+# Analyze Ethereum with enhanced crypto data
+_, eth_decision = ta.propagate("ETH-USD", "2024-05-10")
+
+print(f"Bitcoin Decision: {btc_decision}")
+print(f"Ethereum Decision: {eth_decision}")
+
+# Enhanced crypto tools
+from tradingagents.crypto_tools import (
+    analyze_crypto_market,
+    get_crypto_portfolio_analysis,
+    get_crypto_market_overview,
+    get_crypto_technical_analysis
+)
+
+# Comprehensive crypto market analysis
+analysis = analyze_crypto_market("BTC-USD", 30)
+
+# Portfolio analysis for multiple cryptocurrencies
+portfolio = get_crypto_portfolio_analysis("BTC-USD,ETH-USD,SOL-USD", 90)
+
+# Market overview
+overview = get_crypto_market_overview()
+
+# Technical analysis with crypto-specific indicators
+technical = get_crypto_technical_analysis("BTC-USD", "rsi,macd,nvt_ratio")
+```
+
+### Automatic Crypto Detection
+
+The system automatically:
+- Detects crypto symbols based on common patterns (e.g., `-USD` suffix, crypto tickers)
+- Excludes fundamental analysis for crypto (since crypto doesn't have traditional financial statements)
+- Uses appropriate data sources for crypto price data and technical indicators
+- Falls back gracefully between multiple data sources
+
+### Data Sources for Crypto
+
+1. **CoinGecko**: Primary source for enhanced data (free tier)
+2. **CoinMarketCap**: Premium data with API key
+3. **CryptoCompare**: Historical data and social metrics
+4. **Yahoo Finance**: Fallback data source
+5. **Social Media**: Twitter and Reddit community metrics
+
+### Crypto-Specific Technical Indicators
+
+- **NVT Ratio**: Network Value to Transactions ratio for valuation
+- **Mayer Multiple**: Bitcoin-specific overbought/oversold indicator
+- **Puell Multiple**: Miner profitability and selling pressure
+- **RHODL Ratio**: Market cycle extremes identification
+- **Standard Indicators**: RSI, MACD, Bollinger Bands, Moving Averages
+- **News**: General market news (crypto-specific news integration planned)
 
 ## Contributing
 
