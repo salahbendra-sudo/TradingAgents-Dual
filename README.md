@@ -132,6 +132,17 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+**⚠️ Dependency Issues?** If you get `ModuleNotFoundError: No module named 'langchain_community'`:
+```bash
+# Run the dependency fix script
+python fix_dependencies.py
+```
+
+Verify installation:
+```bash
+python verify_installation.py
+```
+
 ### Required APIs
 
 #### **Core APIs (Required)**
