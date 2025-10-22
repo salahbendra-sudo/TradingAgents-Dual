@@ -14,18 +14,24 @@ config["max_debate_rounds"] = 1  # Increase debate rounds
 
 # Configure data vendors (default uses yfinance and alpha_vantage)
 config["data_vendors"] = {
-    "core_stock_apis": "yfinance",           # Options: yfinance, alpha_vantage, local
-    "technical_indicators": "yfinance",      # Options: yfinance, alpha_vantage, local
+    "core_stock_apis": "yfinance",           # Options: yfinance, alpha_vantage, local, crypto
+    "technical_indicators": "yfinance",      # Options: yfinance, alpha_vantage, local, crypto
     "fundamental_data": "alpha_vantage",     # Options: openai, alpha_vantage, local
-    "news_data": "alpha_vantage",            # Options: openai, alpha_vantage, google, local
+    "news_data": "alpha_vantage",            # Options: openai, alpha_vantage, google, local, crypto
 }
 
 # Initialize with custom config
 ta = TradingAgentsGraph(debug=True, config=config)
 
-# forward propagate
+print("=== Stock Analysis Example ===")
+# forward propagate for stock
 _, decision = ta.propagate("NVDA", "2024-05-10")
-print(decision)
+print(f"Stock Decision: {decision}")
+
+print("\n=== Crypto Analysis Example ===")
+# forward propagate for crypto (automatically adjusts analysts)
+_, crypto_decision = ta.propagate("BTC-USD", "2024-05-10")
+print(f"Crypto Decision: {crypto_decision}")
 
 # Memorize mistakes and reflect
 # ta.reflect_and_remember(1000) # parameter is the position returns

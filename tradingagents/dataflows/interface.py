@@ -16,6 +16,8 @@ from .alpha_vantage import (
     get_news as get_alpha_vantage_news
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
+from .crypto import get_crypto_data, get_crypto_info, get_crypto_news, get_crypto_indicators
+from .crypto_enhanced import get_crypto_data as get_crypto_data_enhanced, get_crypto_info as get_crypto_info_enhanced, get_crypto_news as get_crypto_news_enhanced, get_crypto_indicators as get_crypto_indicators_enhanced, get_crypto_social_sentiment
 
 # Configuration and routing logic
 from .config import get_config
@@ -58,7 +60,8 @@ VENDOR_LIST = [
     "local",
     "yfinance",
     "openai",
-    "google"
+    "google",
+    "crypto"
 ]
 
 # Mapping of methods to their vendor-specific implementations
@@ -68,12 +71,14 @@ VENDOR_METHODS = {
         "alpha_vantage": get_alpha_vantage_stock,
         "yfinance": get_YFin_data_online,
         "local": get_YFin_data,
+        "crypto": get_crypto_data_enhanced,
     },
     # technical_indicators
     "get_indicators": {
         "alpha_vantage": get_alpha_vantage_indicator,
         "yfinance": get_stock_stats_indicators_window,
-        "local": get_stock_stats_indicators_window
+        "local": get_stock_stats_indicators_window,
+        "crypto": get_crypto_indicators_enhanced,
     },
     # fundamental_data
     "get_fundamentals": {
@@ -101,6 +106,7 @@ VENDOR_METHODS = {
         "openai": get_stock_news_openai,
         "google": get_google_news,
         "local": [get_finnhub_news, get_reddit_company_news, get_google_news],
+        "crypto": get_crypto_news_enhanced,
     },
     "get_global_news": {
         "openai": get_global_news_openai,

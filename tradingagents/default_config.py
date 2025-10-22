@@ -13,6 +13,14 @@ DEFAULT_CONFIG = {
     "deep_think_llm": "o4-mini",
     "quick_think_llm": "gpt-4o-mini",
     "backend_url": "https://api.openai.com/v1",
+    "openai_api_key": "",  # Can be set here or via OPENAI_API_KEY environment variable
+    # Additional LLM API keys for enhanced provider support
+    "openrouter_api_key": "",  # Get from https://openrouter.ai/
+    "deepseek_api_key": "",    # Get from https://platform.deepseek.com/
+    "huggingface_api_key": "", # Get from https://huggingface.co/settings/tokens
+    # Local embedding model settings
+    "local_embeddings": False,  # Set to True to use local embedding models
+    "embedding_model": "all-MiniLM-L6-v2",  # Default local embedding model
     # Debate and discussion settings
     "max_debate_rounds": 1,
     "max_risk_discuss_rounds": 1,
@@ -20,14 +28,21 @@ DEFAULT_CONFIG = {
     # Data vendor configuration
     # Category-level configuration (default for all tools in category)
     "data_vendors": {
-        "core_stock_apis": "yfinance",       # Options: yfinance, alpha_vantage, local
-        "technical_indicators": "yfinance",  # Options: yfinance, alpha_vantage, local
+        "core_stock_apis": "yfinance",       # Options: yfinance, alpha_vantage, local, crypto
+        "technical_indicators": "yfinance",  # Options: yfinance, alpha_vantage, local, crypto
         "fundamental_data": "alpha_vantage", # Options: openai, alpha_vantage, local
-        "news_data": "alpha_vantage",        # Options: openai, alpha_vantage, google, local
+        "news_data": "alpha_vantage",        # Options: openai, alpha_vantage, google, local, crypto
     },
     # Tool-level configuration (takes precedence over category-level)
     "tool_vendors": {
         # Example: "get_stock_data": "alpha_vantage",  # Override category default
         # Example: "get_news": "openai",               # Override category default
+    },
+    
+    # Crypto API configurations
+    "crypto_api_keys": {
+        "coinmarketcap": "",  # Get from https://coinmarketcap.com/api/
+        "cryptocompare": "",  # Get from https://min-api.cryptocompare.com/
+        "coingecko": "",  # Optional for higher rate limits
     },
 }

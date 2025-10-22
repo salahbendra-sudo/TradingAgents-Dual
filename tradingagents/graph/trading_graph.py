@@ -9,6 +9,10 @@ from typing import Dict, Any, Tuple, List, Optional
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.chat_models import ChatOllama
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.llms import HuggingFaceEndpoint
+from langchain_community.chat_models import ChatHuggingFace
 
 from langgraph.prebuilt import ToolNode
 
@@ -61,6 +65,9 @@ class TradingAgentsGraph:
         """
         self.debug = debug
         self.config = config or DEFAULT_CONFIG
+        
+        # Store original analyst selection
+        self.selected_analysts = selected_analysts
 
         # Update the interface's config
         set_config(self.config)
@@ -71,16 +78,55 @@ class TradingAgentsGraph:
             exist_ok=True,
         )
 
-        # Initialize LLMs
-        if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
-        elif self.config["llm_provider"].lower() == "anthropic":
-            self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
-        elif self.config["llm_provider"].lower() == "google":
+        # Initialize LLMs with enhanced provider support
+        provider = self.config["llm_provider"].lower()
+        
+        if provider == "openai":
+            # Standard OpenAI API
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config.get("backend_url", "https://api.openai.com/v1"))
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config.get("backend_url", "https://api.openai.com/v1"))
+        elif provider == "openrouter":
+            # OpenRouter (OpenAI-compatible)
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url="https://openrouter.ai/api/v1", api_key=self.config.get("openrouter_api_key"))
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url="https://openrouter.ai/api/v1", api_key=self.config.get("openrouter_api_key"))
+        elif provider == "deepseek":
+            # DeepSeek (OpenAI-compatible)
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url="https://api.deepseek.com/v1", api_key=self.config.get("deepseek_api_key"))
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url="https://api.deepseek.com/v1", api_key=self.config.get("deepseek_api_key"))
+        elif provider == "anthropic":
+            self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config.get("backend_url"))
+            self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config.get("backend_url"))
+        elif provider == "google":
             self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
+        elif provider == "ollama":
+            # Local Ollama models
+            self.deep_thinking_llm = ChatOllama(model=self.config["deep_think_llm"], base_url=self.config.get("backend_url", "http://localhost:11434"))
+            self.quick_thinking_llm = ChatOllama(model=self.config["quick_think_llm"], base_url=self.config.get("backend_url", "http://localhost:11434"))
+        elif provider == "huggingface":
+            # HuggingFace models (local or via API)
+            if self.config.get("backend_url"):
+                # Using HuggingFace Inference API
+                self.deep_thinking_llm = HuggingFaceEndpoint(
+                    endpoint_url=self.config["backend_url"],
+                    huggingfacehub_api_token=self.config.get("huggingface_api_key"),
+                    task="text-generation"
+                )
+                self.quick_thinking_llm = HuggingFaceEndpoint(
+                    endpoint_url=self.config["backend_url"],
+                    huggingfacehub_api_token=self.config.get("huggingface_api_key"),
+                    task="text-generation"
+                )
+            else:
+                # Local HuggingFace models
+                self.deep_thinking_llm = ChatHuggingFace.from_model_id(
+                    model_id=self.config["deep_think_llm"],
+                    task="text-generation"
+                )
+                self.quick_thinking_llm = ChatHuggingFace.from_model_id(
+                    model_id=self.config["quick_think_llm"],
+                    task="text-generation"
+                )
         else:
             raise ValueError(f"Unsupported LLM provider: {self.config['llm_provider']}")
         
@@ -119,6 +165,59 @@ class TradingAgentsGraph:
 
         # Set up the graph
         self.graph = self.graph_setup.setup_graph(selected_analysts)
+
+    def _is_crypto_symbol(self, symbol: str) -> bool:
+        """
+        Check if a symbol represents a cryptocurrency.
+        
+        Args:
+            symbol (str): The symbol to check
+            
+        Returns:
+            bool: True if it's a crypto symbol, False otherwise
+        """
+        # Common crypto symbols and patterns
+        crypto_patterns = [
+            "BTC", "ETH", "XRP", "LTC", "BCH", "ADA", "DOT", "LINK", "XLM", "DOGE",
+            "USDT", "USDC", "DAI", "WBTC", "MATIC", "SOL", "AVAX", "ATOM", "ALGO", "FIL"
+        ]
+        
+        symbol_upper = symbol.upper()
+        
+        # Check for common crypto patterns
+        for pattern in crypto_patterns:
+            if pattern in symbol_upper:
+                return True
+        
+        # Check for crypto-specific suffixes
+        crypto_suffixes = ["-USD", "-USDT", "-BTC", "-ETH"]
+        for suffix in crypto_suffixes:
+            if symbol_upper.endswith(suffix):
+                return True
+                
+        return False
+
+    def _get_adjusted_analysts_for_symbol(self, symbol: str) -> list:
+        """
+        Get the appropriate analyst selection for a given symbol.
+        For crypto symbols, exclude fundamentals analyst.
+        
+        Args:
+            symbol (str): The symbol to analyze
+            
+        Returns:
+            list: Adjusted list of analysts
+        """
+        if self._is_crypto_symbol(symbol):
+            # For crypto, exclude fundamentals analyst
+            adjusted_analysts = [a for a in self.selected_analysts if a != "fundamentals"]
+            if not adjusted_analysts:
+                # If no analysts left, use default crypto analysts
+                adjusted_analysts = ["market", "social", "news"]
+            return adjusted_analysts
+        else:
+            # For stocks, use the original selection
+            return self.selected_analysts
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""
@@ -161,6 +260,13 @@ class TradingAgentsGraph:
         """Run the trading agents graph for a company on a specific date."""
 
         self.ticker = company_name
+
+        # Get adjusted analysts for the symbol (crypto vs stock)
+        adjusted_analysts = self._get_adjusted_analysts_for_symbol(company_name)
+        
+        # Re-setup graph with adjusted analysts if needed
+        if adjusted_analysts != self.selected_analysts:
+            self.graph = self.graph_setup.setup_graph(adjusted_analysts)
 
         # Initialize state
         init_agent_state = self.propagator.create_initial_state(

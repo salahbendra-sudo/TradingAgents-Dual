@@ -31,6 +31,26 @@
 >
 > So we decided to fully open-source the framework. Looking forward to building impactful projects with you!
 
+## 🚀 Key Features
+
+### **Multi-Asset Support**
+- **Stocks**: Comprehensive equity analysis with fundamental, technical, and sentiment analysis
+- **Cryptocurrencies**: Enhanced crypto support with multi-API data sources and crypto-specific indicators
+- **Flexible Asset Classes**: Easily extensible for other financial instruments
+
+### **Enhanced LLM Provider Support**
+- **OpenAI**: Standard API integration with GPT models
+- **OpenRouter**: Access to 100+ models (Anthropic, Google, Meta, Mistral, etc.)
+- **DeepSeek**: Cost-effective alternative with free tier
+- **Ollama**: Local model support for privacy and offline use
+- **HuggingFace**: Open-source models via API or local installation
+
+### **Advanced Analytics**
+- **Multi-Agent Architecture**: Specialized agents for different analysis types
+- **Dynamic Debates**: Bull vs. bear researcher discussions
+- **Risk Management**: Comprehensive portfolio risk assessment
+- **Memory System**: Historical situation learning with local embeddings
+
 <div align="center">
 <a href="https://www.star-history.com/#TauricResearch/TradingAgents&Date">
  <picture>
@@ -112,14 +132,52 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+**⚠️ Dependency Issues?** If you get `ModuleNotFoundError: No module named 'langchain_community'`:
+```bash
+# Run the dependency fix script
+python fix_dependencies.py
+```
+
+Verify installation:
+```bash
+python verify_installation.py
+```
+
 ### Required APIs
 
+#### **Core APIs (Required)**
 You will need the OpenAI API for all the agents, and [Alpha Vantage API](https://www.alphavantage.co/support/#api-key) for fundamental and news data (default configuration).
 
 ```bash
 export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
 export ALPHA_VANTAGE_API_KEY=$YOUR_ALPHA_VANTAGE_API_KEY
 ```
+
+#### **Enhanced Cryptocurrency Support (Optional)**
+For comprehensive crypto analysis with multi-API data sources:
+```bash
+# Optional crypto API keys for enhanced features
+export COINMARKETCAP_API_KEY=$YOUR_COINMARKETCAP_API_KEY
+export CRYPTOCOMPARE_API_KEY=$YOUR_CRYPTOCOMPARE_API_KEY
+export COINGECKO_API_KEY=$YOUR_COINGECKO_API_KEY
+```
+
+#### **Enhanced LLM Provider Support (Optional)**
+Access multiple AI model providers beyond OpenAI:
+```bash
+# Optional LLM provider API keys
+export OPENROUTER_API_KEY=$YOUR_OPENROUTER_API_KEY
+export DEEPSEEK_API_KEY=$YOUR_DEEPSEEK_API_KEY
+export HUGGINGFACE_API_KEY=$YOUR_HUGGINGFACE_API_KEY
+```
+
+**Provider Options:**
+- **OpenRouter**: Access to 100+ models (Anthropic, Google, Meta, Mistral, etc.)
+- **DeepSeek**: Cost-effective alternative with free tier
+- **Ollama**: Run models locally for privacy and offline use
+- **HuggingFace**: Open-source models via API or local installation
+
+See [LLM_PROVIDER_GUIDE.md](LLM_PROVIDER_GUIDE.md) for detailed configuration.
 
 Alternatively, you can create a `.env` file in the project root with your API keys (see `.env.example` for reference):
 ```bash
@@ -167,13 +225,18 @@ from tradingagents.default_config import DEFAULT_CONFIG
 
 ta = TradingAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
 
-# forward propagate
+# forward propagate for stocks
 _, decision = ta.propagate("NVDA", "2024-05-10")
 print(decision)
+
+# forward propagate for cryptocurrencies
+_, crypto_decision = ta.propagate("BTC-USD", "2024-05-10")
+print(crypto_decision)
 ```
 
-You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
+You can also adjust the default configuration to set your own choice of LLMs, debate rounds, data vendors, and more.
 
+#### **Basic Configuration Example**
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -200,9 +263,130 @@ _, decision = ta.propagate("NVDA", "2024-05-10")
 print(decision)
 ```
 
+#### **Enhanced LLM Provider Configuration**
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+# Example: Using OpenRouter with Claude and Gemini
+config = DEFAULT_CONFIG.copy()
+config.update({
+    "llm_provider": "openrouter",
+    "deep_think_llm": "anthropic/claude-3.5-sonnet",
+    "quick_think_llm": "google/gemini-flash-1.5",
+    "openrouter_api_key": "your_openrouter_api_key"
+})
+
+ta = TradingAgentsGraph(config=config)
+_, decision = ta.propagate("AAPL", "2024-05-10")
+
+# Example: Using local Ollama
+config.update({
+    "llm_provider": "ollama",
+    "deep_think_llm": "llama3.1:8b",
+    "quick_think_llm": "llama3.1:8b",
+    "backend_url": "http://localhost:11434"
+})
+
+ta = TradingAgentsGraph(config=config)
+_, decision = ta.propagate("BTC-USD", "2024-05-10")
+```
+
+#### **Enhanced Crypto Configuration**
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+# Configure for enhanced crypto analysis
+config = DEFAULT_CONFIG.copy()
+config["data_vendors"] = {
+    "core_stock_apis": "crypto",
+    "technical_indicators": "crypto", 
+    "news_data": "crypto"
+}
+
+# Set crypto API keys
+config["crypto_api_keys"] = {
+    "coinmarketcap": "your_coinmarketcap_key",
+    "cryptocompare": "your_cryptocompare_key",
+    "coingecko": "your_coingecko_key"
+}
+
+ta = TradingAgentsGraph(config=config)
+
+# Analyze multiple cryptocurrencies
+_, btc_decision = ta.propagate("BTC-USD", "2024-05-10")
+_, eth_decision = ta.propagate("ETH-USD", "2024-05-10")
+_, sol_decision = ta.propagate("SOL-USD", "2024-05-10")
+
+print(f"Bitcoin: {btc_decision}")
+print(f"Ethereum: {eth_decision}")
+print(f"Solana: {sol_decision}")
+```
+
 > The default configuration uses yfinance for stock price and technical data, and Alpha Vantage for fundamental and news data. For production use or if you encounter rate limits, consider upgrading to [Alpha Vantage Premium](https://www.alphavantage.co/premium/) for more stable and reliable data access. For offline experimentation, there's a local data vendor option that uses our **Tauric TradingDB**, a curated dataset for backtesting, though this is still in development. We're currently refining this dataset and plan to release it soon alongside our upcoming projects. Stay tuned!
 
 You can view the full list of configurations in `tradingagents/default_config.py`.
+
+## Enhanced Crypto Support
+
+TradingAgents includes comprehensive cryptocurrency analysis with multiple API support, real-time data, and crypto-specific analytics.
+
+### Key Features
+
+- **Multi-API Support**: CoinGecko, CoinMarketCap, CryptoCompare, and Yahoo Finance
+- **Real-time Data**: Live cryptocurrency prices, market caps, and volume data
+- **Crypto-Specific Indicators**: NVT Ratio, Mayer Multiple, Puell Multiple, RHODL Ratio
+- **Social Sentiment Analysis**: Twitter followers, Reddit subscribers, community metrics
+- **Enhanced News**: Crypto-specific news aggregation and status updates
+- **Portfolio Analysis**: Multi-crypto portfolio construction and optimization
+- **Rate Limiting**: Built-in rate limiting for all API calls
+
+### Supported Cryptocurrencies
+
+- **Major Cryptocurrencies**: `BTC-USD`, `ETH-USD`, `ADA-USD`, `SOL-USD`, `DOGE-USD`, `XRP-USD`
+- **Altcoins**: `LTC-USD`, `DOT-USD`, `LINK-USD`, `MATIC-USD`, `AVAX-USD`, `ATOM-USD`, `ALGO-USD`, `FIL-USD`
+- **Additional**: `BNB-USD`, `XLM-USD`, `EOS-USD`, `TRX-USD`, `XMR-USD`, `DASH-USD`, `ZEC-USD`
+
+### Data Sources for Crypto
+
+1. **CoinGecko**: Primary source for enhanced data (free tier)
+2. **CoinMarketCap**: Premium data with API key
+3. **CryptoCompare**: Historical data and social metrics
+4. **Yahoo Finance**: Fallback data source
+5. **Social Media**: Twitter and Reddit community metrics
+
+### Crypto-Specific Technical Indicators
+
+- **NVT Ratio**: Network Value to Transactions ratio for valuation
+- **Mayer Multiple**: Bitcoin-specific overbought/oversold indicator
+- **Puell Multiple**: Miner profitability and selling pressure
+- **RHODL Ratio**: Market cycle extremes identification
+- **Standard Indicators**: RSI, MACD, Bollinger Bands, Moving Averages
+
+### Automatic Crypto Detection
+
+The system automatically:
+- Detects crypto symbols based on common patterns (e.g., `-USD` suffix, crypto tickers)
+- Excludes fundamental analysis for crypto (since crypto doesn't have traditional financial statements)
+- Uses appropriate data sources for crypto price data and technical indicators
+- Falls back gracefully between multiple data sources
+
+For detailed crypto integration instructions, see [CRYPTO_USER_MANUAL.md](CRYPTO_USER_MANUAL.md).
+
+## 📚 Comprehensive Documentation
+
+### **User Guides**
+- [**CRYPTO_USER_MANUAL.md**](CRYPTO_USER_MANUAL.md) - Complete cryptocurrency integration guide
+- [**LLM_PROVIDER_GUIDE.md**](LLM_PROVIDER_GUIDE.md) - Enhanced LLM provider configuration guide
+
+### **Technical Documentation**
+- [**CRYPTO_INTEGRATION_SUMMARY.md**](CRYPTO_INTEGRATION_SUMMARY.md) - Technical implementation details
+- [**tradingagents/default_config.py**](tradingagents/default_config.py) - Complete configuration options
+
+### **Quick Start**
+- [**.env.example**](.env.example) - Environment variable template
+- [**test_llm_providers.py**](test_llm_providers.py) - LLM provider validation script
 
 ## Contributing
 
