@@ -54,46 +54,32 @@ def main():
     for package in packages_to_remove:
         run_command(f"pip uninstall -y {package}", f"Uninstalling {package}")
     
-    # Step 2: Install compatible versions
-    print("\n📦 Step 2: Installing compatible versions")
+    # Step 2: Install compatible versions using requirements.txt
+    print("\n📦 Step 2: Installing compatible versions from requirements.txt")
+    run_command("pip install -r requirements.txt", "Installing all dependencies from requirements.txt")
     
-    # First install the core langchain packages with compatible versions
-    core_packages = [
-        "langchain-core>=0.3.79,<1.0.0",
-        "langchain>=0.3.27,<1.0.0",
-        "langchain-community>=0.3.31,<1.0.0",
-        "langchain-openai>=0.3.35,<1.0.0",
-        "langchain-anthropic>=0.3.22,<1.0.0",
-        "langchain-google-genai>=2.1.12,<3.0.0",
-        "langchain-ollama>=0.3.10,<1.0.0",
-        "langchain-huggingface>=0.3.1,<1.0.0"
+    # Step 3: Install specific packages that might need additional handling
+    print("\n🤖 Step 3: Installing specific LLM provider dependencies")
+    
+    specific_packages = [
+        "openai",
+        "anthropic", 
+        "google-generativeai",
+        "ollama",
+        "huggingface-hub"
     ]
     
-    for package in core_packages:
-        run_command(f"pip install {package}", f"Installing {package}")
-    
-    # Step 3: Install LLM provider dependencies
-    print("\n🤖 Step 3: Installing LLM provider dependencies")
-    
-    provider_packages = [
-        "openai>=1.0.0,<2.0.0",
-        "anthropic>=0.7.0,<1.0.0",
-        "google-generativeai>=0.8.5,<1.0.0",
-        "ollama>=0.6.0,<1.0.0",
-        "huggingface-hub>=0.35.3,<1.0.0"
-    ]
-    
-    for package in provider_packages:
+    for package in specific_packages:
         run_command(f"pip install {package}", f"Installing {package}")
     
     # Step 4: Install optional dependencies
     print("\n📚 Step 4: Installing optional dependencies")
     
     optional_packages = [
-        "sentence-transformers>=5.1.1,<6.0.0",
-        "numpy>=1.26.2",
-        "scipy>=1.11.4",
-        "scikit-learn>=1.3.2"
+        "sentence-transformers",
+        "numpy",
+        "scipy", 
+        "scikit-learn"
     ]
     
     for package in optional_packages:
